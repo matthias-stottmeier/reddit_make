@@ -3,21 +3,34 @@ Database connection and session management
 """
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.pool import QueuePool
 from contextlib import contextmanager
 
 import sys
 sys.path.insert(0, str(__file__).rsplit('/', 3)[0])
 
-from config.settings import DATABASE_URL
+from config.settings import DATABASE_URL, DATABASE_TYPE
 from src.database.models import Base
 
 
-# Create engine
-engine = create_engine(
-    DATABASE_URL,
-    echo=False,  # Set to True for SQL debugging
-    connect_args={"check_same_thread": False}  # SQLite specific
-)
+# Create engine with appropriate settings for database type
+if DATABASE_TYPE == "postgresql":
+    # PostgreSQL (Supabase) settings
+    engine = create_engine(
+        DATABASE_URL,
+        echo=False,
+        poolclass=QueuePool,
+        pool_size=5,
+        max_overflow=10,
+        pool_pre_ping=True,  # Check connection health
+    )
+else:
+    # SQLite settings (local development)
+    engine = create_engine(
+        DATABASE_URL,
+        echo=False,
+        connect_args={"check_same_thread": False}
+    )
 
 # Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

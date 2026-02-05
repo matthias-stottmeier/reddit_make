@@ -4,6 +4,13 @@ Configuration settings for Reddit Scraper
 import os
 from pathlib import Path
 
+# Try to import streamlit secrets for cloud deployment
+try:
+    import streamlit as st
+    SUPABASE_URL = st.secrets.get("SUPABASE_URL", os.getenv("SUPABASE_URL", ""))
+except Exception:
+    SUPABASE_URL = os.getenv("SUPABASE_URL", "")
+
 # Project paths
 PROJECT_ROOT = Path(__file__).parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
@@ -15,8 +22,13 @@ try:
 except OSError:
     pass  # Directory might already exist or be read-only
 
-# Database URL
-DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
+# Database URL - Use Supabase if available, otherwise fall back to SQLite
+if SUPABASE_URL:
+    DATABASE_URL = SUPABASE_URL
+    DATABASE_TYPE = "postgresql"
+else:
+    DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
+    DATABASE_TYPE = "sqlite"
 
 # Scraping settings
 SCRAPE_DELAY_MIN = 2  # seconds between requests

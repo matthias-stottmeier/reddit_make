@@ -35,8 +35,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -52,17 +50,21 @@ jobs:
       - name: Install Playwright browsers
         run: playwright install chromium
 
-      - name: Initialize database (if needed)
+      - name: Initialize database tables (Supabase)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         run: |
-          if [ ! -f data/reddit_scraper.db ]; then
-            echo "Database not found, initializing..."
-            python scripts/init_db.py
-          else
-            echo "Database exists, skipping initialization"
-          fi
+          echo "Ensuring database tables exist in Supabase..."
+          python -c "
+from src.database.connection import engine
+from src.database.models import Base
+Base.metadata.create_all(bind=engine)
+print('Tables ready!')
+"
 
       - name: Run scraper
         env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SCRAPE_MODE: ${{ github.event.inputs.mode || 'engagement' }}
           SCRAPE_LIMIT: ${{ github.event.inputs.limit || '0' }}
         run: |
@@ -73,25 +75,11 @@ jobs:
             python scripts/run_scraper.py --mode $SCRAPE_MODE
           fi
 
-      - name: Commit and push changes
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-
-          # Add database file
-          git add data/reddit_scraper.db
-
-          # Check if there are changes to commit
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "🤖 Auto-scrape: $(date -u '+%Y-%m-%d %H:%M UTC')"
-            git push
-          fi
-
       - name: Summary
         run: |
           echo "### Scrape Complete! 🎉" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Mode: ${{ github.event.inputs.mode || 'engagement' }}" >> $GITHUB_STEP_SUMMARY
           echo "Time: $(date -u '+%Y-%m-%d %H:%M UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Data saved directly to Supabase (no git commit needed)" >> $GITHUB_STEP_SUMMARY
