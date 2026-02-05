@@ -15,7 +15,11 @@
       "Bash(done)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(SUPABASE_URL=\"postgresql://postgres:4faS_u868+G4fC.@db.mgbbprgtswlflnienjkf.supabase.co:5432/postgres\" python3:*)",
+      "Bash(SUPABASE_URL=\"postgresql://postgres:4faS_u868+G4fC.@db.mgbbprgtswlflnienjkf.supabase.co:5432/postgres\" python:*)",
+      "Bash(ping:*)",
+      "Bash(SUPABASE_URL=\"postgresql://postgres.mgbbprgtswlflnienjkf:4faS_u868+G4fC.@aws-1-eu-west-1.pooler.supabase.com:5432/postgres\" python:*)"
     ]
   }
 }
