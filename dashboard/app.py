@@ -13,97 +13,74 @@ from src.database.connection import session_scope
 from src.database.models import Post, Subreddit, Keyword
 
 st.set_page_config(
-    page_title="MAKE Reddit Scraper",
+    page_title="Dashboard | MAKE Scraper",
     page_icon="📊",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
+    menu_items={
+        'About': "MAKE Reddit Scraper - Find creator economy engagement opportunities"
+    }
 )
 
-# MAKE Brand CSS
+# MAKE Brand CSS - works in both light and dark mode
 st.markdown("""
 <style>
-    /* MAKE Brand Colors */
-    :root {
-        --make-purple: #5B5BF7;
-        --make-lime: #BFFF00;
-        --make-dark: #1A1A2E;
-        --make-gray: #6B7280;
-        --make-light: #F8F9FA;
+    /* MAKE Brand Colors - adaptive for dark/light mode */
+    .make-header {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        margin-bottom: 8px;
     }
 
-    /* Clean minimal styling */
-    .main-header {
+    .make-logo {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #5B5BF7;
+        letter-spacing: -0.5px;
+    }
+
+    .make-title {
         font-size: 2rem;
         font-weight: 700;
-        color: var(--make-dark);
-        margin-bottom: 0.25rem;
+        background: linear-gradient(135deg, #5B5BF7 0%, #8B8BFF 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
 
-    .sub-header {
+    .make-subtitle {
         font-size: 1rem;
-        color: var(--make-gray);
-        margin-top: 0;
-        font-weight: 400;
+        opacity: 0.7;
+        margin-top: -8px;
+        margin-bottom: 16px;
     }
 
-    .brand-accent {
-        color: #5B5BF7;
-    }
-
-    /* Card styling */
-    .opportunity-card {
-        background: white;
-        border: 1px solid #E5E7EB;
-        border-radius: 8px;
-        padding: 16px;
-        margin: 8px 0;
-    }
-
-    .opportunity-card:hover {
-        border-color: #5B5BF7;
-    }
-
-    /* Stats styling */
-    .stat-value {
-        font-size: 1.75rem;
-        font-weight: 700;
-        color: var(--make-dark);
-    }
-
-    .stat-label {
-        font-size: 0.875rem;
-        color: var(--make-gray);
-    }
-
-    /* Mode toggle */
+    /* Mode toggle styling */
     .stRadio > div {
         gap: 1rem;
-    }
-
-    /* Dividers */
-    hr {
-        border-color: #E5E7EB;
     }
 
     /* Hide Streamlit branding */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
 
-    /* Sidebar styling */
-    .css-1d391kg {
-        background-color: #FAFAFA;
+    /* Accent color for links and highlights */
+    a {
+        color: #5B5BF7 !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# Header
-col_logo, col_title = st.columns([1, 11])
-with col_logo:
-    st.markdown("**MAKE**")
-with col_title:
-    st.markdown('<p class="main-header">Reddit Scraper</p>', unsafe_allow_html=True)
+# Header - works in dark and light mode
+st.markdown("""
+<div class="make-header">
+    <span class="make-logo">MAKE</span>
+    <span class="make-title">Reddit Scraper</span>
+</div>
+""", unsafe_allow_html=True)
 
-st.markdown('<p class="sub-header">Find creator economy engagement opportunities</p>', unsafe_allow_html=True)
+st.markdown('<p class="make-subtitle">Find creator economy engagement opportunities</p>', unsafe_allow_html=True)
 
 st.divider()
 

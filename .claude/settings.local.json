@@ -8,7 +8,12 @@
       "Bash(python scripts/init_db.py:*)",
       "Bash(python scripts/run_scraper.py:*)",
       "Bash(python:*)",
-      "Bash(timeout 10 streamlit run:*)"
+      "Bash(timeout 10 streamlit run:*)",
+      "Bash(open http://localhost:8501)",
+      "Bash(while ps aux)",
+      "Bash(do sleep 10)",
+      "Bash(done)",
+      "Bash(git add:*)"
     ]
   }
 }
