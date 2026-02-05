@@ -70,6 +70,12 @@ class Post(Base):
     has_outcome_edit = Column(Boolean, default=False)  # User updated with resolution
     is_archived = Column(Boolean, default=False)
 
+    # Action tracking (user workflow)
+    # Status: NEW -> IN_PROGRESS -> DONE / SKIPPED
+    action_status = Column(String(20), default="NEW", index=True)
+    action_notes = Column(Text, default="")  # User notes about engagement
+    action_updated_at = Column(DateTime, nullable=True)  # When status was last changed
+
     # Timestamps
     created_utc = Column(DateTime, nullable=True)
     collected_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
@@ -86,6 +92,7 @@ class Post(Base):
         Index('idx_switch_intent', 'switch_intent_score'),
         Index('idx_category', 'primary_category'),
         Index('idx_timeframe', 'search_timeframe'),
+        Index('idx_action_status', 'action_status'),
     )
 
     def __repr__(self):
