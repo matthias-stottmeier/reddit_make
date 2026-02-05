@@ -1,24 +1,26 @@
-# Web Scraping
-playwright==1.41.0
-beautifulsoup4==4.12.3
-lxml==5.1.0
-
-# Database
-sqlalchemy==2.0.25
-alembic==1.13.1
-
-# Dashboard
+# Dashboard (Streamlit Cloud compatible)
 streamlit==1.31.0
 plotly==5.18.0
 pandas==2.2.0
 
-# Sentiment Analysis
-vaderSentiment==3.3.2
-nltk==3.8.1
+# Database
+sqlalchemy==2.0.25
 
-# Background Jobs
-apscheduler==3.10.4
+# Sentiment Analysis (optional - for future use)
+# vaderSentiment==3.3.2
+# nltk==3.8.1
 
 # Utilities
 python-dotenv==1.0.1
-requests==2.31.0
+
+# ===========================================
+# LOCAL DEVELOPMENT ONLY (not for Streamlit Cloud)
+# ===========================================
+# These packages require compilation or system libraries
+# that are not available on Streamlit Cloud.
+# Install them locally with: pip install -r requirements-local.txt
+#
+# playwright==1.41.0      # For Reddit scraping
+# beautifulsoup4==4.12.3  # For HTML parsing
+# lxml==5.1.0             # For XML/HTML parsing
+# apscheduler==3.10.4     # For background jobs
