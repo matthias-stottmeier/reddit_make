@@ -2,6 +2,9 @@
 Opportunities Page - High-intent threads to engage with
 """
 import streamlit as st
+
+st.set_page_config(page_title="Opportunities | MAKE Scraper", page_icon="🎯", layout="wide")
+
 import pandas as pd
 from datetime import datetime, timedelta, timezone
 
@@ -11,8 +14,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.database.connection import session_scope
 from src.database.models import Post, Subreddit, Keyword
+from dashboard.auth import check_password
 
-st.set_page_config(page_title="Opportunities | MAKE Scraper", page_icon="🎯", layout="wide")
+if not check_password():
+    st.stop()
 
 # Status options for action tracking
 STATUS_OPTIONS = ["NEW", "IN_PROGRESS", "DONE", "SKIPPED"]

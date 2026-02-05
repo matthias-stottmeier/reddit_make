@@ -17,6 +17,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.database.connection import session_scope
 from src.database.models import Subreddit, Keyword
+from dashboard.auth import check_password
+
+if not check_password():
+    st.stop()
 
 # GitHub repository info for triggering scraper
 # Try Streamlit secrets first, then fall back to environment variables

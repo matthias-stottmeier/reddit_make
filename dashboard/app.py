@@ -2,15 +2,6 @@
 MAKE Reddit Scraper Dashboard - Main Entry Point
 """
 import streamlit as st
-from datetime import datetime, timedelta
-import sys
-from pathlib import Path
-
-# Add project root to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from src.database.connection import session_scope
-from src.database.models import Post, Subreddit, Keyword
 
 st.set_page_config(
     page_title="Dashboard | MAKE Scraper",
@@ -21,6 +12,21 @@ st.set_page_config(
         'About': "MAKE Reddit Scraper - Find creator economy engagement opportunities"
     }
 )
+
+from datetime import datetime, timedelta
+import sys
+from pathlib import Path
+
+# Add project root to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from src.database.connection import session_scope
+from src.database.models import Post, Subreddit, Keyword
+from dashboard.auth import check_password
+
+# Check authentication first
+if not check_password():
+    st.stop()
 
 # MAKE Brand CSS - works in both light and dark mode
 st.markdown("""

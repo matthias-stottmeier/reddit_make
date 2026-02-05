@@ -2,6 +2,9 @@
 Trends Page - Analytics and trend visualization
 """
 import streamlit as st
+
+st.set_page_config(page_title="Trends | MAKE Scraper", page_icon="📈", layout="wide")
+
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -14,8 +17,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.database.connection import session_scope
 from src.database.models import Post, Keyword
+from dashboard.auth import check_password
 
-st.set_page_config(page_title="Trends | MAKE Scraper", page_icon="📈", layout="wide")
+if not check_password():
+    st.stop()
 
 st.title("📈 Trends & Analytics")
 st.markdown("*Track keyword momentum and engagement patterns over time*")
