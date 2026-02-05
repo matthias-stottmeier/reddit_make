@@ -1,10 +1,9 @@
 name: Reddit Scraper
 
 on:
-  # Run daily at 6 AM and 6 PM UTC
+  # Run FULL scrape once daily at 6 AM UTC
   schedule:
-    - cron: '0 6 * * *'   # 6 AM UTC
-    - cron: '0 18 * * *'  # 6 PM UTC
+    - cron: '0 6 * * *'   # 6 AM UTC - Full daily scrape
 
   # Allow manual trigger from GitHub Actions UI
   workflow_dispatch:
@@ -12,12 +11,12 @@ on:
       mode:
         description: 'Scraping mode'
         required: true
-        default: 'engagement'
+        default: 'all'
         type: choice
         options:
-          - engagement
-          - research
-          - full
+          - all          # Full scrape (all timeframes)
+          - engagement   # Quick scrape (hour/day/week)
+          - research     # Deep scrape (month/year)
       limit:
         description: 'Max subreddits to scrape (0 = all)'
         required: false
@@ -65,10 +64,19 @@ print('Tables ready!')
       - name: Run scraper
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SCRAPE_MODE: ${{ github.event.inputs.mode || 'engagement' }}
+          # Default to 'all' for scheduled runs, use input for manual/dispatch triggers
+          SCRAPE_MODE: ${{ github.event.inputs.mode || github.event.client_payload.mode || 'all' }}
           SCRAPE_LIMIT: ${{ github.event.inputs.limit || '0' }}
         run: |
-          echo "Running scraper in $SCRAPE_MODE mode"
+          echo "=============================================="
+          echo "Reddit Scraper - $(date -u '+%Y-%m-%d %H:%M UTC')"
+          echo "=============================================="
+          echo "Mode: $SCRAPE_MODE"
+          echo "Limit: $SCRAPE_LIMIT (0 = all subreddits)"
+          echo ""
+          echo "Note: Existing posts will have stats updated (upvotes, comments)"
+          echo "      Action status and notes are preserved!"
+          echo "=============================================="
           if [ "$SCRAPE_LIMIT" != "0" ]; then
             python scripts/run_scraper.py --mode $SCRAPE_MODE --limit $SCRAPE_LIMIT
           else

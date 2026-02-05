@@ -2,6 +2,10 @@
 Settings Page - Manage subreddits, keywords, and scraping configuration
 """
 import streamlit as st
+
+# MUST be first Streamlit command
+st.set_page_config(page_title="Settings | MAKE Scraper", page_icon="⚙️", layout="wide")
+
 import pandas as pd
 from datetime import datetime
 import requests
@@ -12,7 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.database.connection import session_scope
-from src.database.models import Subreddit, Keyword, Settings
+from src.database.models import Subreddit, Keyword
 
 # GitHub repository info for triggering scraper
 # Try Streamlit secrets first, then fall back to environment variables
@@ -22,8 +26,6 @@ try:
 except Exception:
     GITHUB_REPO = os.getenv("GITHUB_REPO", "")
     GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
-
-st.set_page_config(page_title="Settings | MAKE Scraper", page_icon="⚙️", layout="wide")
 
 st.title("⚙️ Settings")
 st.markdown("*Manage your subreddits, keywords, and scraping configuration*")
@@ -188,8 +190,8 @@ with tab3:
     with col1:
         scrape_mode = st.selectbox(
             "Scraping Mode",
-            ["engagement", "research", "full"],
-            help="Engagement = hour/day/week, Research = month/year, Full = all timeframes"
+            ["all", "engagement", "research"],
+            help="All = full scrape (all timeframes), Engagement = hour/day/week, Research = month/year"
         )
 
     with col2:
@@ -235,10 +237,10 @@ with tab3:
     st.markdown("### ⏰ Automatic Schedule")
     st.info("""
     The scraper runs automatically via GitHub Actions:
-    - **6:00 AM UTC** - Morning scrape (engagement mode)
-    - **6:00 PM UTC** - Evening scrape (engagement mode)
+    - **6:00 AM UTC** - Daily full scrape (all keywords, all timeframes)
 
-    Data is automatically committed back to the repository.
+    Data is saved directly to Supabase. Existing posts have their stats updated
+    (upvotes, comments) while preserving your action status and notes.
     """)
 
     st.divider()
