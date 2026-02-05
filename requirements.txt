@@ -12,6 +12,7 @@ sqlalchemy==2.0.25
 
 # Utilities
 python-dotenv==1.0.1
+requests==2.31.0
 
 # ===========================================
 # LOCAL DEVELOPMENT ONLY (not for Streamlit Cloud)

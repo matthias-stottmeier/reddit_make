@@ -1,0 +1,97 @@
+name: Reddit Scraper
+
+on:
+  # Run daily at 6 AM and 6 PM UTC
+  schedule:
+    - cron: '0 6 * * *'   # 6 AM UTC
+    - cron: '0 18 * * *'  # 6 PM UTC
+
+  # Allow manual trigger from GitHub Actions UI
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Scraping mode'
+        required: true
+        default: 'engagement'
+        type: choice
+        options:
+          - engagement
+          - research
+          - full
+      limit:
+        description: 'Max subreddits to scrape (0 = all)'
+        required: false
+        default: '0'
+        type: string
+
+  # Trigger via repository dispatch (for dashboard button)
+  repository_dispatch:
+    types: [trigger-scrape]
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-local.txt
+
+      - name: Install Playwright browsers
+        run: playwright install chromium
+
+      - name: Initialize database (if needed)
+        run: |
+          if [ ! -f data/reddit_scraper.db ]; then
+            echo "Database not found, initializing..."
+            python scripts/init_db.py
+          else
+            echo "Database exists, skipping initialization"
+          fi
+
+      - name: Run scraper
+        env:
+          SCRAPE_MODE: ${{ github.event.inputs.mode || 'engagement' }}
+          SCRAPE_LIMIT: ${{ github.event.inputs.limit || '0' }}
+        run: |
+          echo "Running scraper in $SCRAPE_MODE mode"
+          if [ "$SCRAPE_LIMIT" != "0" ]; then
+            python scripts/run_scraper.py --mode $SCRAPE_MODE --limit $SCRAPE_LIMIT
+          else
+            python scripts/run_scraper.py --mode $SCRAPE_MODE
+          fi
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          # Add database file
+          git add data/reddit_scraper.db
+
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "🤖 Auto-scrape: $(date -u '+%Y-%m-%d %H:%M UTC')"
+            git push
+          fi
+
+      - name: Summary
+        run: |
+          echo "### Scrape Complete! 🎉" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Mode: ${{ github.event.inputs.mode || 'engagement' }}" >> $GITHUB_STEP_SUMMARY
+          echo "Time: $(date -u '+%Y-%m-%d %H:%M UTC')" >> $GITHUB_STEP_SUMMARY

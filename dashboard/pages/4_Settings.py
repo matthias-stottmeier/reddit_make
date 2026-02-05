@@ -4,6 +4,8 @@ Settings Page - Manage subreddits, keywords, and scraping configuration
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+import requests
+import os
 
 import sys
 from pathlib import Path
@@ -11,6 +13,15 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.database.connection import session_scope
 from src.database.models import Subreddit, Keyword, Settings
+
+# GitHub repository info for triggering scraper
+# Try Streamlit secrets first, then fall back to environment variables
+try:
+    GITHUB_REPO = st.secrets.get("GITHUB_REPO", os.getenv("GITHUB_REPO", ""))
+    GITHUB_TOKEN = st.secrets.get("GITHUB_TOKEN", os.getenv("GITHUB_TOKEN", ""))
+except Exception:
+    GITHUB_REPO = os.getenv("GITHUB_REPO", "")
+    GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
 
 st.set_page_config(page_title="Settings | MAKE Scraper", page_icon="⚙️", layout="wide")
 
@@ -169,7 +180,68 @@ with tab2:
 with tab3:
     st.subheader("Scraping Configuration")
 
-    st.info("These settings control how the scraper behaves")
+    # ---- TRIGGER SCRAPER SECTION ----
+    st.markdown("### 🚀 Trigger Scraper")
+
+    col1, col2 = st.columns([2, 1])
+
+    with col1:
+        scrape_mode = st.selectbox(
+            "Scraping Mode",
+            ["engagement", "research", "full"],
+            help="Engagement = hour/day/week, Research = month/year, Full = all timeframes"
+        )
+
+    with col2:
+        st.write("")  # Spacer
+        st.write("")  # Spacer
+        trigger_btn = st.button("🔄 Run Scraper Now", type="primary", use_container_width=True)
+
+    if trigger_btn:
+        if GITHUB_REPO and GITHUB_TOKEN:
+            # Trigger GitHub Actions via repository dispatch
+            try:
+                response = requests.post(
+                    f"https://api.github.com/repos/{GITHUB_REPO}/dispatches",
+                    headers={
+                        "Authorization": f"token {GITHUB_TOKEN}",
+                        "Accept": "application/vnd.github.v3+json"
+                    },
+                    json={
+                        "event_type": "trigger-scrape",
+                        "client_payload": {"mode": scrape_mode}
+                    }
+                )
+                if response.status_code == 204:
+                    st.success("✅ Scraper triggered! Check GitHub Actions for progress.")
+                    st.info(f"View progress: https://github.com/{GITHUB_REPO}/actions")
+                else:
+                    st.error(f"Failed to trigger scraper: {response.status_code} - {response.text}")
+            except Exception as e:
+                st.error(f"Error triggering scraper: {e}")
+        else:
+            st.warning("⚠️ GitHub integration not configured. Set GITHUB_REPO and GITHUB_TOKEN in Streamlit secrets.")
+            st.info("The scraper runs automatically twice daily via GitHub Actions.")
+
+    # Show last scrape info
+    with session_scope() as session:
+        from src.database.models import Post
+        last_post = session.query(Post).order_by(Post.collected_at.desc()).first()
+        if last_post:
+            st.caption(f"📅 Last data collected: {last_post.collected_at.strftime('%Y-%m-%d %H:%M UTC')}")
+
+    st.divider()
+
+    st.markdown("### ⏰ Automatic Schedule")
+    st.info("""
+    The scraper runs automatically via GitHub Actions:
+    - **6:00 AM UTC** - Morning scrape (engagement mode)
+    - **6:00 PM UTC** - Evening scrape (engagement mode)
+
+    Data is automatically committed back to the repository.
+    """)
+
+    st.divider()
 
     col1, col2 = st.columns(2)
 
@@ -193,10 +265,8 @@ with tab3:
 
     st.divider()
 
-    st.markdown("### Run Scraper")
-    st.markdown("Use these commands to run the scraper:")
-
-    st.code("""
+    with st.expander("📝 Local Development Commands"):
+        st.code("""
 # Quick test (1 subreddit, 2 keywords)
 python scripts/run_scraper.py --limit 1 --keywords payout banking
 
@@ -208,7 +278,7 @@ python scripts/run_scraper.py --mode research
 
 # Full scrape (all subreddits, all keywords, all timeframes)
 python scripts/run_scraper.py
-    """, language="bash")
+        """, language="bash")
 
 # ============================================
 # TAB 4: DATABASE
