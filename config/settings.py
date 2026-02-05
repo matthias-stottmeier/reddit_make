@@ -9,8 +9,11 @@ PROJECT_ROOT = Path(__file__).parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
 DATABASE_PATH = DATA_DIR / "reddit_scraper.db"
 
-# Ensure data directory exists
-DATA_DIR.mkdir(exist_ok=True)
+# Ensure data directory exists (may fail on read-only filesystems like Streamlit Cloud)
+try:
+    DATA_DIR.mkdir(exist_ok=True)
+except OSError:
+    pass  # Directory might already exist or be read-only
 
 # Database URL
 DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
